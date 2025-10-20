@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Dependensiyalarni o‘rnatamiz
-RUN npm install
+RUN npm install --omit=dev
 
 # Qolgan fayllarni konteynerga nusxalaymiz
 COPY . .
