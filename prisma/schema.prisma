@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// === User Model ===
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  surname      String
+  login_name   String   @unique
+  email        String   @unique
+  password     String
+  role         String   @default("student")
+  isActive     Boolean  @default(true)
+  registeredAt DateTime @default(now())
+
+  testResults TestResult[]
+  submissions AssignmentSubmission[]
+}
+
+// === Article Model ===
+model Article {
+  id          Int       @id @default(autoincrement())
+  title       String
+  content     String
+  imageUrl    String
+  createdAt   DateTime  @default(now())
+  views       Int       @default(0)
+  publishAt   DateTime?
+  isPublished Boolean   @default(false)
+}
+
+// === Lesson Model ===
+model Lesson {
+  id          Int       @id @default(autoincrement())
+  title       String    @unique
+  description String
+  video_url   String
+  createdAt   DateTime  @default(now())
+  publishAt   DateTime?
+  isPublished Boolean   @default(false)
+
+  materials   Material[]
+  tests       Test[]
+  assignments Assignment[]
+}
+
+// === Material Model ===
+model Material {
+  id        Int      @id @default(autoincrement())
+  name      String
+  url       String
+  createdAt DateTime @default(now())
+
+  lessonId Int
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+// === Test Model ===
+model Test {
+  id            Int      @id @default(autoincrement())
+  lessonId      Int
+  question      String
+  options       String[]
+  correctAnswer String
+  timeLimit     Int      @default(60)
+
+  lesson  Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  results TestResult[]
+  stat    TestStat?
+}
+
+// === TestResult Model ===
+model TestResult {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  testId         Int
+  selectedAnswer Int
+  isCorrect      Boolean
+  createdAt      DateTime @default(now())
+
+  test Test @relation(fields: [testId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}
+
+// === TestStat Model ===
+model TestStat {
+  id              Int @id @default(autoincrement())
+  testId          Int @unique
+  totalAttempts   Int @default(0)
+  correctAttempts Int @default(0)
+
+  test Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+}
+
+enum AssignmentStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+}
+
+// === Assignment Model ===
+model Assignment {
+  id          Int              @id @default(autoincrement())
+  lessonId    Int
+  description String
+  fileUrls    String[] // Multiple files
+  status      AssignmentStatus @default(PENDING) // 👈 yangi maydon
+
+  lesson      Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
+}
+
+// === AssignmentSubmission Model ===
+model AssignmentSubmission {
+  id           Int      @id @default(autoincrement())
+  assignmentId Int
+  userId       Int
+  fileUrl      String
+  description  String? // 👈 topshiruvga izoh
+  createdAt    DateTime @default(now())
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+}
