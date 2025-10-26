@@ -28,7 +28,7 @@ app.use('/api/articles', require('./routes/articleRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/tests', require('./routes/testResultRoutes'));
 app.use('/api/materials', require('./routes/materialRoutes'));
-
+app.use('/api', require('./routes/healthRoutes'));
 // Har 1 daqiqa autoPublish
 setInterval(autoPublish, 60 * 1000);
 

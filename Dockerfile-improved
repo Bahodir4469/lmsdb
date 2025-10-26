@@ -1,0 +1,36 @@
+FROM node:20-alpine
+
+# Kerakli utilitylar o'rnatish
+RUN apk add --no-cache \
+    bash \
+    curl \
+    netcat-openbsd \
+    postgresql-client
+
+WORKDIR /app
+
+# Dependencies o'rnatish
+COPY package*.json ./
+RUN npm install --omit=dev
+
+# Application fayllarini nusxalash
+COPY . .
+
+# Prisma Client generate
+RUN npx prisma generate
+
+# Uploads papka
+RUN mkdir -p /app/uploads && chmod 755 /app/uploads
+
+# Entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:${PORT:-8080}/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+EXPOSE ${PORT:-8080}
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["npm", "start"]

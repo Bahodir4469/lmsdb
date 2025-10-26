@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lmsdb
+    # ❌ ESKI: Bu qator xavfli - internetdan database ga kirish mumkin
+    # ports:
+    #   - "5432:5432"
+    
+    # ✅ YANGI: Faqat docker network ichida
+    expose:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: lms-api
+    restart: always
+    env_file: .env
+    # Faqat localhost dan kirish (nginx orqali)
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - lms-network
+
+volumes:
+  pgdata:
+
+networks:
+  lms-network:
+    driver: bridge
