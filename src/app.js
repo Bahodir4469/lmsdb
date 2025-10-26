@@ -11,8 +11,8 @@ const initAdmin = require('./utils/initAdmin');
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://biologiya.vercel.app',  // O'Z URLingiz!
-    /\.vercel\.app$/
+    'https://biologiya.vercel.app',
+    'https://jul-farmer-lowest-combine.trycloudflare.com'  // QO'SHISH
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
