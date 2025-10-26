@@ -12,7 +12,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://biologiya.vercel.app',
-    'https://23c6f838d91b.ngrok-free.app'  // QO'SHISH!
+    'https://796325cefab3.ngrok-free.app'  // YANGI URL
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
