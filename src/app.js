@@ -12,7 +12,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://biologiya.vercel.app',
-    'https://jul-farmer-lowest-combine.trycloudflare.com'  // QO'SHISH
+    'https://23c6f838d91b.ngrok-free.app'  // QO'SHISH!
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
