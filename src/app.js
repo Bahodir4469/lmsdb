@@ -8,12 +8,18 @@ const autoPublish = require('./utils/autoPublisher');
 const initAdmin = require('./utils/initAdmin');
 
 // Middleware
-app.use(
-  cors({
-    origin: 'http://localhost:5173', // frontend URL
-    credentials: true
-  })
-);
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://biologiya.vercel.app',  // O'Z URLingiz!
+    /\.vercel\.app$/
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.options('*', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
