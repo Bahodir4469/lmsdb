@@ -23,7 +23,7 @@ const createAssignment = async (req, res) => {
 
     let files = [];
 
-    // ✅ 1. Fayllar yuklangan bo‘lsa
+    // ✅ 1. Fayllar yuklangan bo'lsa
     if (req.files && req.files.length > 0) {
       const uploadedFiles = req.files.map((file) => {
         const relativePath = path.relative(
@@ -35,20 +35,25 @@ const createAssignment = async (req, res) => {
       files.push(...uploadedFiles);
     }
 
-    // ✅ 2. files maydonida URL linklar bo‘lsa (json string yoki oddiy)
+    // ✅ 2. files maydonida URL linklar bo'lsa (json string yoki oddiy)
     if (req.body.files) {
       try {
         const parsed = JSON.parse(req.body.files);
-        files.push(...(Array.isArray(parsed) ? parsed : [parsed]));
+        const validFiles = (Array.isArray(parsed) ? parsed : [parsed])
+          .filter(file => file && typeof file === 'string' && file.trim() !== '');
+        files.push(...validFiles);
       } catch {
-        files.push(req.body.files); // oddiy string bo‘lsa
+        // Agar parse bo'lmasa va string bo'lsa
+        if (typeof req.body.files === 'string' && req.body.files.trim() !== '') {
+          files.push(req.body.files);
+        }
       }
     }
 
     const assignment = await assignmentService.createAssignment({
       lessonId: numericLessonId,
       description,
-      fileUrls: files
+      fileUrls: files.length > 0 ? files : [] // Bo'sh array guaranteed
     });
 
     res.status(201).json(assignment);
@@ -232,20 +237,25 @@ const updateAssignment = async (req, res) => {
       files.push(...uploadedFiles);
     }
 
-    // 2. Qo‘shimcha file URL’lar body’dan kelgan bo‘lishi mumkin
+    // 2. Qo'shimcha file URL'lar body'dan kelgan bo'lishi mumkin
     if (req.body.files) {
       try {
         const parsed = JSON.parse(req.body.files);
-        files.push(...(Array.isArray(parsed) ? parsed : [parsed]));
+        const validFiles = (Array.isArray(parsed) ? parsed : [parsed])
+          .filter(file => file && typeof file === 'string' && file.trim() !== '');
+        files.push(...validFiles);
       } catch {
-        files.push(req.body.files);
+        // Agar parse bo'lmasa va string bo'lsa
+        if (typeof req.body.files === 'string' && req.body.files.trim() !== '') {
+          files.push(req.body.files);
+        }
       }
     }
 
     const updated = await assignmentService.updateAssignment(assignmentId, {
       lessonId: parseInt(lessonId),
       description,
-      fileUrls: files
+      fileUrls: files.length > 0 ? files : []
     });
 
     res.json(updated);
