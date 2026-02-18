@@ -40,6 +40,23 @@ if [ "$EUID" -eq 0 ]; then
     print_warning "Root sifatida ishlamoqdasiz"
 fi
 
+SELECTED_COMPOSE_FILE="${COMPOSE_FILE:-docker-compose-secure.yml}"
+if [ ! -f "$SELECTED_COMPOSE_FILE" ]; then
+    SELECTED_COMPOSE_FILE="docker-compose.yml"
+fi
+
+if [ ! -f "$SELECTED_COMPOSE_FILE" ]; then
+    print_error "Compose fayl topilmadi (docker-compose-secure.yml yoki docker-compose.yml)"
+    exit 1
+fi
+
+compose() {
+    docker compose -f "$SELECTED_COMPOSE_FILE" "$@"
+}
+
+print_info "Compose file: $SELECTED_COMPOSE_FILE"
+echo ""
+
 # 1. Check Docker
 echo -e "${BLUE}1️⃣  Docker tekshirilmoqda...${NC}"
 if command -v docker &> /dev/null && command -v docker compose &> /dev/null; then
@@ -109,20 +126,20 @@ echo ""
 
 # 5. Stop existing containers
 echo -e "${BLUE}5️⃣  Eski containerlar to'xtatilmoqda...${NC}"
-docker compose down 2>/dev/null || true
+compose down 2>/dev/null || true
 print_success "Eski containerlar to'xtatildi"
 echo ""
 
 # 6. Build images
 echo -e "${BLUE}6️⃣  Docker images build qilinmoqda...${NC}"
 echo "   Bu bir necha daqiqa davom etishi mumkin..."
-docker compose build --no-cache
+compose build --no-cache
 print_success "Docker images tayyor"
 echo ""
 
 # 7. Start services
 echo -e "${BLUE}7️⃣  Servislar ishga tushirilmoqda...${NC}"
-docker compose up -d
+compose up -d
 print_success "Servislar ishga tushdi"
 echo ""
 
@@ -132,13 +149,13 @@ echo "   Database va API ishga tushishi kutilmoqda..."
 sleep 15
 
 # Check if services are running
-if docker compose ps | grep -q "Up"; then
+if compose ps | grep -q "Up"; then
     print_success "Servislar ishlayapti"
 else
     print_error "Servislar ishga tushmadi!"
     echo ""
     echo "Loglarni ko'rish:"
-    echo "  docker compose logs"
+    echo "  docker compose -f $SELECTED_COMPOSE_FILE logs"
     exit 1
 fi
 echo ""
@@ -168,7 +185,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "📊 SERVIS MA'LUMOTLARI:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-docker compose ps
+compose ps
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🌐 API MANZILLARI:"
@@ -188,10 +205,10 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📋 FOYDALI BUYRUQLAR:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "   Loglarni ko'rish:        docker compose logs -f"
-echo "   To'xtatish:              docker compose down"
-echo "   Qayta ishga tushirish:   docker compose restart"
-echo "   Status:                  docker compose ps"
+echo "   Loglarni ko'rish:        docker compose -f $SELECTED_COMPOSE_FILE logs -f"
+echo "   To'xtatish:              docker compose -f $SELECTED_COMPOSE_FILE down"
+echo "   Qayta ishga tushirish:   docker compose -f $SELECTED_COMPOSE_FILE restart"
+echo "   Status:                  docker compose -f $SELECTED_COMPOSE_FILE ps"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
@@ -203,5 +220,5 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo ""
     echo "Loglar (Ctrl+C bilan chiqish):"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    docker compose logs -f
+    compose logs -f
 fi

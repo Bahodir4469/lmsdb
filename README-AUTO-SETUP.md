@@ -58,12 +58,18 @@ INIT_ADMIN_PASSWORD=AdminParol456!
 
 # JWT Secret (avtomatik generatsiya qilinadi)
 JWT_SECRET=$(openssl rand -hex 32)
+
+# Nginx ortida ishlaganda
+TRUST_PROXY=1
+
+# CORS (frontend domainlaringiz)
+CORS_ORIGINS=https://kognitivbiologiya.uz,https://www.kognitivbiologiya.uz,https://biologiya.vercel.app
 ```
 
 ### 2. Docker Ishga Tushirish
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose-secure.yml up -d
 ```
 
 Bu yerda Docker avtomatik:
@@ -146,9 +152,9 @@ Content-Type: application/json
 
 ```bash
 git pull origin main
-docker compose down
-docker compose build --no-cache
-docker compose up -d
+docker compose -f docker-compose-secure.yml down
+docker compose -f docker-compose-secure.yml build --no-cache
+docker compose -f docker-compose-secure.yml up -d
 ```
 
 Yoki tez script:
@@ -165,21 +171,21 @@ Yoki tez script:
 
 ```bash
 # Ishga tushirish
-docker compose up -d
+docker compose -f docker-compose-secure.yml up -d
 
 # To'xtatish
-docker compose down
+docker compose -f docker-compose-secure.yml down
 
 # Restart
-docker compose restart
+docker compose -f docker-compose-secure.yml restart
 
 # Status
-docker compose ps
+docker compose -f docker-compose-secure.yml ps
 
 # Loglar
-docker compose logs -f
-docker compose logs -f api
-docker compose logs -f db
+docker compose -f docker-compose-secure.yml logs -f
+docker compose -f docker-compose-secure.yml logs -f api
+docker compose -f docker-compose-secure.yml logs -f db
 ```
 
 ### Database
@@ -363,6 +369,8 @@ nano .env
 
 # Parollarni o'zgartiring!
 # JWT_SECRET ni yangilang!
+# TRUST_PROXY=1 qiling
+# CORS_ORIGINS ga frontend domenlarni yozing
 ```
 
 ### 4. Ishga Tushirish
@@ -409,15 +417,15 @@ sudo certbot --nginx -d yourdomain.com
 Agar muammo bo'lsa, avval loglarni tekshiring:
 
 ```bash
-docker compose logs -f
+docker compose -f docker-compose-secure.yml logs -f
 ```
 
 ### Status
 
 ```bash
-docker compose ps
-docker compose exec api node -v
-docker compose exec db psql -U postgres -c "SELECT version();"
+docker compose -f docker-compose-secure.yml ps
+docker compose -f docker-compose-secure.yml exec api node -v
+docker compose -f docker-compose-secure.yml exec db psql -U postgres -c "SELECT version();"
 ```
 
 ### Test

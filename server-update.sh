@@ -26,6 +26,23 @@ fi
 
 cd "$PROJECT_DIR" || exit 1
 
+SELECTED_COMPOSE_FILE="${COMPOSE_FILE:-docker-compose-secure.yml}"
+if [ ! -f "$SELECTED_COMPOSE_FILE" ]; then
+    SELECTED_COMPOSE_FILE="docker-compose.yml"
+fi
+
+if [ ! -f "$SELECTED_COMPOSE_FILE" ]; then
+    echo -e "${RED}❌ Compose fayl topilmadi!${NC}"
+    exit 1
+fi
+
+compose() {
+    docker compose -f "$SELECTED_COMPOSE_FILE" "$@"
+}
+
+echo -e "${YELLOW}ℹ Compose file: $SELECTED_COMPOSE_FILE${NC}"
+echo ""
+
 echo -e "${YELLOW}1️⃣  GitHub dan o'zgarishlar tortilmoqda...${NC}"
 git pull origin main
 
@@ -41,7 +58,7 @@ echo ""
 # Check if Dockerfile changed
 if git diff HEAD@{1} HEAD --name-only | grep -q "Dockerfile\|package.json"; then
     echo -e "${YELLOW}2️⃣  Dockerfile o'zgardi - rebuild qilinmoqda...${NC}"
-    docker compose build --no-cache
+    compose build --no-cache
     REBUILD=true
 else
     echo -e "${YELLOW}2️⃣  Dockerfile o'zgarmagan - rebuild o'tkazib yuborildi${NC}"
@@ -50,7 +67,7 @@ fi
 
 echo ""
 echo -e "${YELLOW}3️⃣  Containerlar to'xtatilmoqda...${NC}"
-docker compose down
+compose down
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Containerlarni to'xtatishda xato!${NC}"
@@ -61,7 +78,7 @@ echo -e "${GREEN}✓ Containerlar to'xtatildi${NC}"
 echo ""
 
 echo -e "${YELLOW}4️⃣  Containerlar ishga tushirilmoqda...${NC}"
-docker compose up -d
+compose up -d
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Containerlarni ishga tushirishda xato!${NC}"
@@ -78,7 +95,7 @@ sleep 5
 # Check if migrations needed
 if git diff HEAD@{1} HEAD --name-only | grep -q "prisma/schema.prisma"; then
     echo -e "${YELLOW}6️⃣  Schema o'zgardi - migrationlar bajarilmoqda...${NC}"
-    docker compose run --rm api npx prisma migrate deploy
+    compose run --rm api npx prisma migrate deploy
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ Migrationlar bajarildi${NC}"
@@ -94,7 +111,7 @@ echo -e "${YELLOW}7️⃣  Holat tekshirilmoqda...${NC}"
 echo ""
 
 # Check container status
-docker compose ps
+compose ps
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -102,17 +119,17 @@ echo -e "${GREEN}✅ YANGILASH YAKUNLANDI!${NC}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📊 Loglarni ko'rish:"
-echo "   docker compose logs -f api"
+echo "   docker compose -f $SELECTED_COMPOSE_FILE logs -f api"
 echo ""
 echo "🌐 API manzili:"
 echo "   http://localhost:8080"
 echo ""
 echo "🛑 To'xtatish:"
-echo "   docker compose down"
+echo "   docker compose -f $SELECTED_COMPOSE_FILE down"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
 # Show last few log lines
 echo -e "${YELLOW}📋 So'nggi loglar:${NC}"
-docker compose logs --tail=20 api
+compose logs --tail=20 api
