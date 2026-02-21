@@ -13,6 +13,16 @@ const parseEnvList = (value) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
+const normalizeOrigin = (value) => {
+  if (!value) return value;
+  try {
+    const parsed = new URL(value);
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return String(value).replace(/\/+$/, '');
+  }
+};
+
 const resolveTrustProxy = (value) => {
   if (value === undefined || value === null || value === '') return undefined;
   const normalized = String(value).toLowerCase().trim();
@@ -33,10 +43,12 @@ const corsOrigins = [
 const allowedOrigins = [
   ...new Set([
     'http://localhost:5173',
-    "https://kognitivbiologiya.uz/",
+    'https://kognitivbiologiya.uz',
+    'https://www.kognitivbiologiya.uz',
     ...corsOrigins
   ])
-];
+].map(normalizeOrigin);
+const allowedOriginSet = new Set(allowedOrigins);
 
 const trustProxy = resolveTrustProxy(process.env.TRUST_PROXY);
 if (trustProxy !== undefined) {
@@ -47,7 +59,7 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Mobile app, curl, Postman kabi origin yubormaydigan clientlar uchun.
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedOriginSet.has(normalizeOrigin(origin))) return callback(null, true);
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
