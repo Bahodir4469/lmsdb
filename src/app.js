@@ -33,6 +33,7 @@ const corsOrigins = [
 const allowedOrigins = [
   ...new Set([
     'http://localhost:5173',
+    "https://kognitivbiologiya.uz/",
     ...corsOrigins
   ])
 ];
